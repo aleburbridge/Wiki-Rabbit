@@ -1,141 +1,171 @@
-import wikipedia
-import os
-from bs4 import BeautifulSoup
-import random
-import requests
-import re
+import os  # for clearing screen
+import random  # holds up spork
+import re  # eeeeeeeee
+import sys  # white male
+import time  # for "..." animation
+
+import requests  # for the http requests
+import wikipedia  # the free encyclopedia
+from bs4 import \
+    BeautifulSoup  # get that ugly soup away from me i dont want no ugly soup
 
 cls = lambda: os.system('cls')
 cls()
 
-# building the bunny
-faces = ['>.>','^.^','o.o','<.<','o.O','@.@','u.u','*.*','v.v','O.O','-.-','^v^','x.x']
-def printRabbit(index):
-    print(f' (\_/)\n ({faces[index]})\n (___)!')
-randomRabbit = lambda: (f' (\_/)\n ({faces[(random.randint(0, (len(faces)) - 3) )]})\n (___)!')
+# Building the bunny
+faces = ['^.^','>.>','<.<','o.o','o.O','@.@','u.u','*.*','v.v','O.O','-.-','^v^','x.x'] #last two faces are reserved for win and lose screen
+def printRabbit(i):
+    print(f' (\_/)\n ({faces[i]})\n (___)!')
+def randomNumber():
+    return random.randint(0, (len(faces)) - 3)
+faceNum = randomNumber()
+rabbitHoles = 0
 
-#Title screen
-greeting = printRabbit(1), input('This is the Wikipedia rabbit\nHe likes to go down rabbit holes to find Wikipedia articles\nYour goal is to guide him down the proper holes to his destination\nHe will start on a random article\nPress enter to begin')
-cls()
+def print_(text_to_print):
+    sys.stdout.write('\r')
+    sys.stdout.flush()
+    sys.stdout.write(text_to_print)
+    time.sleep(1)
 
-# Main Wiki page with list of most viewed pages
+def suspense(message):
+    print_(message)
+    print_(message + '.')
+    print_(message + '..')
+    print_(message + '...\n')
+
+# Main Wikipedia article
 response = requests.get(
     url='https://en.wikipedia.org/wiki/Wikipedia:Multiyear_ranking_of_most_viewed_pages'
 )
 soup = BeautifulSoup(response.content, 'html.parser')
-mostViewedTable = soup.find('tbody')
-
-mostViewedLinks = [] # generating navigable links from the table
+mostViewedTable = soup.find('tbody') # the table of most viewed articles has no id >:(, but luckily it is the only element with a <tbody> tag
+mostViewedLinks = []
 for link in mostViewedTable.find_all('a'):
     mostViewedLinks.append('http://en.wikipedia.org' + link.get('href'))
 
-# Parameters for current game
-goalPage = mostViewedLinks[(random.randint(0, len(mostViewedLinks)))]
-a = requests.get(goalPage)
-goalSoup = BeautifulSoup(a.content, 'html.parser')
-goalTitle = goalSoup.find(class_ = "firstHeading").text
+# creating the start and end page
+def starterArticles():
+    goalLink = mostViewedLinks[(random.randint(0, (len(mostViewedLinks) - 1)) )] # taking a random link from the table
+    a = requests.get(url=goalLink) # making the http request
+    goalSoup = BeautifulSoup(a.content, 'html.parser') # converting the request into tasty beautiful soup
+    goalTitle = goalSoup.find(class_ = 'firstHeading').text 
+    badArticles = {'Main Page','Special:Search','Special:Random','-','Undefined','Special:Watchlist','Special:Randompage','Wiki','404.php','Portal:Current events','Special:Book','Special:CreateAccount','Search','Wikipedia:Your first article','Special:RecentChanges','Creative Commons Attribution','Wsearch.php','Portal:Contents','Wikipedia:Contact us','Talk:Main Page','Export pages', 'Wikipedia:Special:Export'}
+    if goalTitle in badArticles:
+        return starterArticles()
+        # the table includes articles that are special mentions, but i dont want those. i left some like xhamster because it's funny
 
-randomPage = "https://en.wikipedia.org/wiki/Special:Random"
-u = requests.get(randomPage)
-randomSoup = BeautifulSoup(u.content, 'html.parser')
-randomTitle = randomSoup.find(class_ = "firstHeading").text
+    randomLink = "https://en.wikipedia.org/wiki/Special:Random" # this link takes you to a random wikipedia article, like hitting the 'random article' button on the page
+    b = requests.get(url=randomLink) 
+    randomSoup = BeautifulSoup(b.content, 'html.parser')
+    randomTitle = randomSoup.find(class_ = 'firstHeading').text
 
-linksList = []
+    return {'goalTitle': goalTitle, 'randomSoup': randomSoup, 'randomTitle': randomTitle}
+articleInfo = starterArticles()
+# now we have a useful dictionary that includes the end article, starter article, and random soup for the next bit of parsing
+# to make this useful again, we just have to update the dictionaries "randomsoup" bit
+c = {}
 def articleOptions():
-    global rabbitHoles
-    allLinks = randomSoup.find(id='bodyContent').find_all('a', href=re.compile('/wiki/'))
-    for item in allLinks:
-        linksList.append(item)
+    linksList = articleInfo['randomSoup'].find(id='bodyContent').find_all('a', href=re.compile('/wiki/'))
     random.shuffle(linksList)
+    suspense('Your options are')
 
-
-    print('Your choices are')
-    if len(linksList) < 5:
-        for x in range(1, len(linksList)):
+    if len(linksList) == 0:
+        print('Dead end! Thats game over! Also the rabbit is dead! You killed him!')
+    elif len(linksList) < 5:
+        for x in range(0, (len(linksList) - 1) ):
             print( str(x+1) + ': ' + linksList[x]['title'])
     else:
-        for x in range(0,5):
+        for x in range(0, 5):
             try: 
                 print( str(x+1) + ': ' + linksList[x]['title'])
-            except TypeError:
-                print( str(x+1) + ': ' + linksList[x])
             except KeyError:
-                print( str(x+1) + ': ' + linksList[x])
-    rabbitHoles += 1
+                try: 
+                    print( str(x+1) + ': ' + linksList[6]['title'])
+                except KeyError:
+                    print( str(x+1) + ': ' + linksList[7]['title'])
+    articleInfo['linksList'] = linksList
 
-rabbitHoles = 0
-def gameInfo(schroedingersBunny):
+
+def gameStats(schroedinger='alive', current=articleInfo['randomTitle']):
     cls()
-    print(f'Rabbit holes entered: {rabbitHoles}    Current article: {currentTitle}    Goal article: {goalTitle}')
-    if schroedingersBunny == 'alive':
-        print(randomRabbit())
-    elif schroedingersBunny == 'dead':
+    print(f'Rabbit holes entered: {rabbitHoles}    Current article: {current}    Goal article: {articleInfo["goalTitle"]}')
+    if schroedinger == 'dead':
         printRabbit(-1)
     else: 
-        print(randomRabbit)
+        printRabbit(faceNum)
 
-# Screen 1
-print(f'Rabbit holes entered: {rabbitHoles}    Current article: {randomTitle}    Goal article: {goalTitle}')
-print(randomRabbit())
-print('The article you want to reach is ' + goalTitle)
-print('The article you are starting with is ' + randomTitle)
-input('Press enter to send your rabbit down the hole!')
+def introScreen():
+    printRabbit(0)
+    input('This is the Wikipedia rabbit\nHe likes to go down rabbit holes to find Wikipedia articles\nYour goal is to guide him down the proper holes to his destination\nHe will start on a random article\nPress enter to begin')
+    cls()
 
-# Screen 2
-cls()
-print(f'Rabbit holes entered: {rabbitHoles}    Current article: {randomTitle}    Goal article: {goalTitle}')
-print(randomRabbit())
-articleOptions()
-articleInput = input('Enter article number then press enter: ')
-currentPage = randomPage
-currentTitle = ''
-def currentArticleOptions():
+def userInput():
     global rabbitHoles
-    global currentTitle
-    global currentPage
-    linksList = []
+    linksList = articleInfo['linksList']
+    choice = 0 
+    choice = input('Enter article number then press Enter. For 5 more options, type \'6\' then Enter.\n')
+    '''if choice == 'help':
+        print('To view an article summary of each article, type the article number followed by an \'s\' (ex. \'1s\' to see summary of first article)')
+        userInput()'''
+    rabbitHoles += 1
+    choice = int(choice) - 1
+    if choice == 5:
+        for x in range (5, 10):
+            if len(linksList) < 5:
+                for x in range(0, (len(linksList) - 1) ):
+                    print( str(x+1) + ': ' + linksList[x]['title'])
 
-    x = requests.get(currentPage)
-    currentSoup = BeautifulSoup(x.content, 'html.parser')
-    currentTitle = currentSoup.find(class_ = "firstHeading").text
+            else:
+                for x in range(5, 10):
+                    try: 
+                        print( str(x+1) + ': ' + linksList[x]['title'])
+                    except KeyError:
+                        try: 
+                            print( str(x+1) + ': ' + linksList[6]['title'])
+                        except KeyError:
+                            print( str(x+1) + ': ' + linksList[7]['title'])
+    return choice
 
-    gameInfo('alive')
+def articleOptionsTwo():
+    global choice
 
-    allLinks = currentSoup.find(id='bodyContent').find_all('a', href=re.compile('/wiki/'))
-    for item in allLinks:
-        linksList.append(item)
+    currentLink = articleInfo['linksList'][int(choice)]
+    currentLink = ('http://en.wikipedia.org' + currentLink.get('href'))
+    c = requests.get(url=currentLink)
+    currentSoup = BeautifulSoup(c.content, 'html.parser')
+    currentTitle = currentSoup.find(class_ = 'firstHeading').text
+
+    gameStats('alive', currentTitle)
+
+    linksList = currentSoup.find(id='bodyContent').find_all('a', href=re.compile('/wiki/'))
     random.shuffle(linksList)
+    suspense('Your options are')
 
-    currentPage = 'http://en.wikipedia.org' + linksList[int(articleInput) - 1].get('href')
-
-
-    print('Your choices are')
     if len(linksList) == 0:
-        print('Dead end! Thats game over! bitch!')
+        print('Dead end! Thats game over! Also the rabbit is dead! You killed him!')
     elif len(linksList) < 5:
-        for x in range(0, len(linksList)):
+        for x in range(0, (len(linksList) - 1) ):
             print( str(x+1) + ': ' + linksList[x]['title'])
     else:
-        for x in range(0,5):
+        for x in range(0, 5):
             try: 
                 print( str(x+1) + ': ' + linksList[x]['title'])
-            except TypeError:
-                print( str(x+1) + ': ' + linksList[x])
             except KeyError:
-                print( str(x+1) + ': ' + linksList[x])
-    rabbitHoles += 1
+                try: 
+                    print( str(x+1) + ': ' + linksList[6]['title'])
+                except KeyError:
+                    print( str(x+1) + ': ' + linksList[7]['title'])
+    articleInfo['currentTitle'] = currentTitle
+    articleInfo['linksList'] = linksList
 
-#Screen 3 - Infinity
-def gameFlow():
-    currentArticleOptions()
-    articleInput = input('Enter article number then press enter: ')
-
-def gameOver():
-    gameInfo('dead')
-    print('The Wikipedia rabbit has gone down too many holes and has fucking died.')
-    
-while currentTitle != goalTitle:
-    gameFlow()
-    if rabbitHoles > 10:
-        break
-gameOver()
+# Play the game!
+introScreen()
+gameStats()
+linksList = articleOptions()
+for x in range (0,9):
+    choice = userInput()
+    articleOptionsTwo() 
+    if articleInfo['currentTitle'] == articleInfo['goalTitle']:
+        cls()
+        printRabbit(-2)
+        print('u win!')
