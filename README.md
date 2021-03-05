@@ -15,10 +15,6 @@ If you can navigate the Wikipedia rabbit to the goal page within 10 turns, you w
 ## Getting started 
 You will need to have 2 python packages installed (if you don't have them already)
 
-First, you will need [the wikipedia api](https://pypi.org/project/wikipedia/)
+If you do not have [the wikipedia api](https://pypi.org/project/wikipedia/) or [beautiful soup](https://www.crummy.com/software/BeautifulSoup/bs4/doc/), navigate to the folder where you have installed the *Wiki-Rabbit* files and type `pip install -r requirements.txt `
 
-And, of course, [beautiful soup for scraping through the articles](https://www.crummy.com/software/BeautifulSoup/bs4/doc/)
-
-These can both be easily installed in terminal with `pip install wikipedia` and `pip install beautifulsoup4`
-
-In your terminal, navigate to the python file, run it, and badabing badaboom
+Run the python file in your favorite terminal and badabing badaboom
