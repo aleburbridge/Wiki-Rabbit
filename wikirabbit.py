@@ -1,19 +1,17 @@
 import os  # for clearing screen
 import random  # holds up spork
-import re  # eeeeeeeee
-import sys  # white male
-import time  # for "..." animation
-
+import re  
+import sys  
+import time  
 import requests  # for the http requests
 import wikipedia  # the free encyclopedia
-from bs4 import \
-    BeautifulSoup  # get that ugly soup away from me i dont want no ugly soup
+from bs4 import BeautifulSoup  # get that ugly soup away from me i dont want no ugly soup
 
 cls = lambda: os.system('cls')
 cls()
 
 # Building the bunny
-faces = ['^.^','>.>','<.<','o.o','o.O','@.@','u.u','*.*','v.v','O.O','-.-','^v^','x.x'] #last two faces are reserved for win and lose screen
+faces = ['^.^','>.>','<.<','o.o','o.O','@.@','u.u','*.*','v.v','O.O','-.-','^v^','x.x'] 
 def printRabbit(i):
     print(f' (\_/)\n ({faces[i]})\n (___)!')
 def randomNumber():
@@ -38,7 +36,7 @@ response = requests.get(
     url='https://en.wikipedia.org/wiki/Wikipedia:Multiyear_ranking_of_most_viewed_pages'
 )
 soup = BeautifulSoup(response.content, 'html.parser')
-mostViewedTable = soup.find('tbody') # the table of most viewed articles has no id >:(, but luckily it is the only element with a <tbody> tag
+mostViewedTable = soup.find('tbody') # the table of most viewed articles has no id >:( but luckily it is the only element with a <tbody> tag
 mostViewedLinks = []
 for link in mostViewedTable.find_all('a'):
     mostViewedLinks.append('http://en.wikipedia.org' + link.get('href'))
@@ -47,22 +45,22 @@ for link in mostViewedTable.find_all('a'):
 def starterArticles():
     goalLink = mostViewedLinks[(random.randint(0, (len(mostViewedLinks) - 1)) )] # taking a random link from the table
     a = requests.get(url=goalLink) # making the http request
-    goalSoup = BeautifulSoup(a.content, 'html.parser') # converting the request into tasty beautiful soup
+    goalSoup = BeautifulSoup(a.content, 'html.parser')
     goalTitle = goalSoup.find(class_ = 'firstHeading').text 
     badArticles = {'Main Page','Special:Search','Special:Random','-','Undefined','Special:Watchlist','Special:Randompage','Wiki','404.php','Portal:Current events','Special:Book','Special:CreateAccount','Search','Wikipedia:Your first article','Special:RecentChanges','Creative Commons Attribution','Wsearch.php','Portal:Contents','Wikipedia:Contact us','Talk:Main Page','Export pages', 'Wikipedia:Special:Export'}
     if goalTitle in badArticles:
         return starterArticles()
-        # the table includes articles that are special mentions, but i dont want those. i left some like xhamster because it's funny
+        # the table in the wiki article includes articles that are special mentions, but i dont want any of those to be the goal article
 
-    randomLink = "https://en.wikipedia.org/wiki/Special:Random" # this link takes you to a random wikipedia article, like hitting the 'random article' button on the page
+    randomLink = "https://en.wikipedia.org/wiki/Special:Random" # this link takes you to a random wikipedia article, like hitting the 'random article' button 
     b = requests.get(url=randomLink) 
     randomSoup = BeautifulSoup(b.content, 'html.parser')
     randomTitle = randomSoup.find(class_ = 'firstHeading').text
 
     return {'goalTitle': goalTitle, 'randomSoup': randomSoup, 'randomTitle': randomTitle}
 articleInfo = starterArticles()
-# now we have a useful dictionary that includes the end article, starter article, and random soup for the next bit of parsing
-# to make this useful again, we just have to update the dictionaries "randomsoup" bit
+# now we have a useful dictionary that includes the starter article, end article, and random soup for the next bit of parsing
+# to make this useful again, we just have to update randomsoup
 c = {}
 def articleOptions():
     linksList = articleInfo['randomSoup'].find(id='bodyContent').find_all('a', href=re.compile('/wiki/'))
@@ -169,3 +167,4 @@ for x in range (0,9):
         cls()
         printRabbit(-2)
         print('u win!')
+        break
