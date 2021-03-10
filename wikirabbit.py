@@ -101,27 +101,12 @@ def userInput():
     global rabbitHoles
     linksList = articleInfo['linksList']
     choice = 0 
-    choice = input('Enter article number then press Enter. For 5 more options, type \'6\' then Enter.\n')
+    choice = input('\nEnter article number then press Enter\n')
     '''if choice == 'help':
         print('To view an article summary of each article, type the article number followed by an \'s\' (ex. \'1s\' to see summary of first article)')
         userInput()'''
     rabbitHoles += 1
     choice = int(choice) - 1
-    if choice == 5:
-        for x in range (5, 10):
-            if len(linksList) < 5:
-                for x in range(0, (len(linksList) - 1) ):
-                    print( str(x+1) + ': ' + linksList[x]['title'])
-
-            else:
-                for x in range(5, 10):
-                    try: 
-                        print( str(x+1) + ': ' + linksList[x]['title'])
-                    except KeyError:
-                        try: 
-                            print( str(x+1) + ': ' + linksList[6]['title'])
-                        except KeyError:
-                            print( str(x+1) + ': ' + linksList[7]['title'])
     return choice
 
 def articleOptionsTwo():
